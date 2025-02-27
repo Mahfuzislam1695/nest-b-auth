@@ -5,6 +5,7 @@ import { GlobalExceptionFilter } from './common/errors/global-exception.filter';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 import { UsersModule } from './modules/users/users.module';
 import { DatabaseModule } from './modules/database/database.module';
+import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [
@@ -19,6 +20,8 @@ import { DatabaseModule } from './modules/database/database.module';
 
     // Feature modules
     UsersModule,
+
+    AuthModule,
   ],
   providers: [
     // Global exception filter (updated to use GlobalExceptionFilter)
