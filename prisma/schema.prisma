@@ -18,13 +18,19 @@ enum Role {
   admin
 }
 
+enum Status {
+  active
+  inactive
+}
+
 model User {
   id        Int      @id @default(autoincrement())
   userSid   String   @unique @default(uuid())
-  name      String
+  name      String   @db.VarChar(255)
   email     String   @unique
   password  String
   role      Role     @default(user)
+  status    Status   @default(active)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

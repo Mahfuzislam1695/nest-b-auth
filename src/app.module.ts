@@ -1,8 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-// import { ThrottlerModule } from '@nestjs/throttler';
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
-import { HttpExceptionFilter } from './common/errors/http-exception.filter';
+import { GlobalExceptionFilter } from './common/errors/global-exception.filter'; // Updated import
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 import { UsersModule } from './modules/users/users.module';
 import { DatabaseModule } from './modules/database/database.module';
@@ -15,12 +14,6 @@ import { DatabaseModule } from './modules/database/database.module';
       envFilePath: `.env.${process.env.NODE_ENV || 'development'}`, // Load environment-specific .env file
     }),
 
-    // Rate limiting (optional)
-    // ThrottlerModule.forRoot({
-    //   ttl: 60, // Time-to-live in seconds
-    //   limit: 100, // Maximum number of requests within TTL
-    // }),
-
     // Database module (Prisma or TypeORM)
     DatabaseModule,
 
@@ -28,10 +21,10 @@ import { DatabaseModule } from './modules/database/database.module';
     UsersModule,
   ],
   providers: [
-    // Global exception filter
+    // Global exception filter (updated to use GlobalExceptionFilter)
     {
       provide: APP_FILTER,
-      useClass: HttpExceptionFilter,
+      useClass: GlobalExceptionFilter,
     },
     // Global response interceptor
     {

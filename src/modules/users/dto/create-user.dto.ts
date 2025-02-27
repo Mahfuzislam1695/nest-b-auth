@@ -1,5 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsString, IsEmail, MinLength } from "class-validator";
+import { Role, Status } from "@prisma/client";
+import { IsNotEmpty, IsString, IsEmail, MinLength, Matches, IsOptional } from "class-validator";
+import { IsValidName } from "src/common/decorators/user/is-valid-name.decorator";
 
 export class CreateUserDto {
     @ApiProperty({
@@ -8,6 +10,7 @@ export class CreateUserDto {
     })
     @IsString()
     @IsNotEmpty()
+    @IsValidName()
     name: string;
 
     @ApiProperty({
@@ -26,4 +29,13 @@ export class CreateUserDto {
     @IsNotEmpty()
     @MinLength(6, { message: 'Password must be at least 6 characters long' })
     password: string;
+
+    @IsString()
+    @IsNotEmpty()
+
+    role?: Role;
+
+    @IsString()
+    @IsOptional()
+    status?: Status;
 }
