@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
+import * as cookieParser from 'cookie-parser';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { GlobalExceptionFilter } from './common/errors/global-exception.filter'; // Updated import
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
@@ -9,7 +10,14 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // Enable CORS
-  app.enableCors();
+  // app.enableCors();
+  app.enableCors({
+    origin: 'http://localhost:3000', // Allow requests from this origin
+    credentials: true, // Allow cookies to be sent
+  });
+
+  // Use cookie-parser middleware
+  app.use(cookieParser());
 
   // Set the global prefix
   app.setGlobalPrefix('nest-b-auth/api/v1');
