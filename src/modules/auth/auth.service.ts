@@ -6,7 +6,6 @@ import { ApiError } from 'src/common/errors/api-error';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { ConfigService } from '@nestjs/config';
 
-
 @Injectable()
 export class AuthService {
   constructor(
@@ -37,14 +36,20 @@ export class AuthService {
     // Validate user credentials
     const user = await this.validateUser(email, password);
 
-    // Generate access token
-    const payload = { email: user.email, sub: user.id };
+    // const payload = { email: user.email, sub: user.id, role: user.role };
+
+    // const accessToken = this.jwtService.sign(payload, {
+    //   secret: this.configService.get<string>('JWT_SECRET'),
+    //   expiresIn: this.configService.get<string>('JWT_EXPIRES_IN'),
+    // });
+
+    const payload = { email: user.email, sub: user.id, role: user.role };
     const accessToken = this.jwtService.sign(payload, {
       secret: this.configService.get<string>('JWT_SECRET'),
       expiresIn: this.configService.get<string>('JWT_EXPIRES_IN'),
     });
 
-    // Generate refresh token
+    // Generate refresh token with role
     const refreshToken = this.jwtService.sign(payload, {
       secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
       expiresIn: this.configService.get<string>('JWT_REFRESH_EXPIRES_IN'),
@@ -69,18 +74,18 @@ export class AuthService {
         throw new ApiError(HttpStatus.NOT_FOUND, 'User does not exist');
       }
 
-      // Generate a new access token
+      // Generate a new access token with role
       const accessToken = this.jwtService.sign(
-        { email: user.email, sub: user.id },
+        { email: user.email, sub: user.id, role: user.role }, // Include role in payload
         {
           secret: this.configService.get<string>('JWT_SECRET'),
           expiresIn: this.configService.get<string>('JWT_EXPIRES_IN'),
         },
       );
 
-      // Generate a new refresh token (optional)
+      // Generate a new refresh token with role (optional)
       const refreshToken = this.jwtService.sign(
-        { email: user.email, sub: user.id },
+        { email: user.email, sub: user.id, role: user.role }, // Include role in payload
         {
           secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
           expiresIn: this.configService.get<string>('JWT_REFRESH_EXPIRES_IN'),

@@ -7,10 +7,12 @@ import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags } 
 import { sendResponse } from 'src/common/responses/send-response';
 import { Role, Status } from '@prisma/client';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from 'src/common/decorators/roles.decorator';
 
 @ApiTags('Users')
 @Controller('users')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth('Authorization')
 // @ApiBearerAuth('JWT-auth')
 export class UsersController {
@@ -51,6 +53,7 @@ export class UsersController {
   }
 
   @Get(':id')
+  @Roles('admin')
   @ApiOperation({ summary: 'Get a user by ID' })
   @ApiParam({ name: 'id', description: 'User ID', type: Number })
   @ApiResponse({ status: HttpStatus.OK, description: 'User found.' })
