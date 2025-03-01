@@ -12,7 +12,7 @@ import { AuthModule } from './modules/auth/auth.module';
     // Load environment variables
     ConfigModule.forRoot({
       isGlobal: true, // Make ConfigModule available globally
-      envFilePath: `.env.${process.env.NODE_ENV || 'development'}`, // Load environment-specific .env file
+      envFilePath: `.env.${process.env.NODE_ENV || 'development'}`,
     }),
 
     // Database module (Prisma or TypeORM)

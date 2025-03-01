@@ -1,28 +1,58 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import * as bcrypt from 'bcrypt';
+import { ApiError } from 'src/common/errors/api-error';
+import { CreateAuthDto } from './dto/create-auth.dto';
+import { ConfigService } from '@nestjs/config';
+
 
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
+    private configService: ConfigService,
   ) { }
 
-  async validateUser(email: string, pass: string): Promise<any> {
+  async validateUser(email: string, password: string): Promise<any> {
     const user = await this.usersService.findByEmail(email);
-    if (user && (await bcrypt.compare(pass, user.password))) {
-      const { password, ...result } = user;
-      return result;
+
+    if (!user) {
+      throw new ApiError(HttpStatus.CONFLICT, 'User does not exist');
     }
-    throw new UnauthorizedException('Invalid credentials'); // Throw UnauthorizedException for invalid credentials
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      throw new ApiError(HttpStatus.CONFLICT, 'Password is incorrect');
+    }
+
+    const { password: _, ...result } = user; // Exclude password from the result
+    return result;
   }
 
-  async login(user: any) {
+  async login(loginDto: CreateAuthDto) {
+    const { email, password } = loginDto;
+
+    // Validate user credentials
+    const user = await this.validateUser(email, password);
+
+    // Generate access token
     const payload = { email: user.email, sub: user.id };
+    const accessToken = this.jwtService.sign(payload, {
+      secret: this.configService.get<string>('JWT_SECRET'),
+      expiresIn: this.configService.get<string>('JWT_EXPIRES_IN'),
+    });
+
+    // Generate refresh token
+    const refreshToken = this.jwtService.sign(payload, {
+      secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+      expiresIn: this.configService.get<string>('JWT_REFRESH_EXPIRES_IN'),
+    });
+
     return {
-      access_token: this.jwtService.sign(payload),
+      access_token: accessToken,
+      refresh_token: refreshToken,
     };
   }
 }

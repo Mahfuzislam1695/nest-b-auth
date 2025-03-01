@@ -5,15 +5,16 @@ import * as cookieParser from 'cookie-parser';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { GlobalExceptionFilter } from './common/errors/global-exception.filter'; // Updated import
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
+import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Enable CORS
-  // app.enableCors();
+  const configService = app.get(ConfigService);
+
   app.enableCors({
-    origin: 'http://localhost:3000', // Allow requests from this origin
-    credentials: true, // Allow cookies to be sent
+    origin: configService.get<string>('CORS_ORIGIN', 'http://localhost:3000'), // Use CORS_ORIGIN from .env or default to 'http://localhost:3000'
+    credentials: configService.get<boolean>('CORS_CREDENTIALS', true), // Use CORS_CREDENTIALS from .env or default to true
   });
 
   // Use cookie-parser middleware
@@ -69,7 +70,7 @@ async function bootstrap() {
   app.enableShutdownHooks();
 
   // Start the application
-  const port = process.env.PORT || 3332;
+  const port = configService.get<number>('PORT', 3332);
   await app.listen(port);
 
   console.log(`Application is running on: http://localhost:${port}`);
