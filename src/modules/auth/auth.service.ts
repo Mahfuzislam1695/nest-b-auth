@@ -55,4 +55,44 @@ export class AuthService {
       refresh_token: refreshToken,
     };
   }
+
+  async refreshToken(token: string) {
+    try {
+      // Verify the refresh token
+      const payload = this.jwtService.verify(token, {
+        secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+      });
+
+      // Check if the user exists using findByEmail
+      const user = await this.usersService.findByEmail(payload.email); // Use findByEmail
+      if (!user) {
+        throw new ApiError(HttpStatus.NOT_FOUND, 'User does not exist');
+      }
+
+      // Generate a new access token
+      const accessToken = this.jwtService.sign(
+        { email: user.email, sub: user.id },
+        {
+          secret: this.configService.get<string>('JWT_SECRET'),
+          expiresIn: this.configService.get<string>('JWT_EXPIRES_IN'),
+        },
+      );
+
+      // Generate a new refresh token (optional)
+      const refreshToken = this.jwtService.sign(
+        { email: user.email, sub: user.id },
+        {
+          secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+          expiresIn: this.configService.get<string>('JWT_REFRESH_EXPIRES_IN'),
+        },
+      );
+
+      return {
+        access_token: accessToken,
+        refresh_token: refreshToken,
+      };
+    } catch (error) {
+      throw new ApiError(HttpStatus.FORBIDDEN, 'Invalid or expired refresh token');
+    }
+  }
 }

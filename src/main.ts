@@ -54,6 +54,7 @@ async function bootstrap() {
       },
       'JWT-auth', // This name must match the one used in @ApiBearerAuth() in your controllers
     )
+    .addCookieAuth('refreshToken')
     .addTag('Auth', 'Authentication related endpoints')
     .addTag('Users', 'User management endpoints')
     .build();
@@ -72,6 +73,9 @@ async function bootstrap() {
   // Start the application
   const port = configService.get<number>('PORT', 3332);
   await app.listen(port);
+
+  // Use cookie-parser middleware
+  app.use(cookieParser());
 
   console.log(`Application is running on: http://localhost:${port}`);
   console.log(`Swagger UI is running on: http://localhost:${port}/api`);
