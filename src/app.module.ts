@@ -10,6 +10,9 @@ import { AttachUserMiddleware } from './middleware/attach-user.middleware'; // I
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { UsersService } from './modules/users/users.service';
+import { LoggerModule } from './common/logger/logger.module';
+import { LoggerMiddleware } from './common/logger/logger.middleware';
+import { LoggingMiddleware } from './common/middleware/logging.middleware';
 
 @Module({
   imports: [
@@ -21,6 +24,9 @@ import { UsersService } from './modules/users/users.service';
 
     // Database module (Prisma or TypeORM)
     DatabaseModule,
+
+    // Logger module (Winston)
+    LoggerModule, // Add the LoggerModule here
 
     // Feature modules
     UsersModule,
@@ -49,6 +55,7 @@ export class AppModule implements NestModule {
     consumer
       .apply(AttachUserMiddleware)
       .forRoutes('*');
+    consumer.apply(LoggingMiddleware).forRoutes('*');
   }
 }
 // import { Module } from '@nestjs/common';

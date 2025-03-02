@@ -6,9 +6,14 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { GlobalExceptionFilter } from './common/errors/global-exception.filter'; // Updated import
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 import { ConfigService } from '@nestjs/config';
+import { logger } from './config/logger.config';
+import { LoggingExceptionFilter } from './common/filters/logging-exception.filter';
+import { LoggingInterceptor } from './common/interfaces/logging.interceptor';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    logger: logger,
+  });
 
   const configService = app.get(ConfigService);
 
@@ -31,6 +36,13 @@ async function bootstrap() {
       forbidNonWhitelisted: true, // Throw errors for non-whitelisted properties
     }),
   );
+
+  // // Global exception filter
+  // app.useGlobalFilters(new LoggingExceptionFilter()); // Use the logging exception filter
+
+  // // Global response interceptor
+  // app.useGlobalInterceptors(new LoggingInterceptor()); // Use the logging interceptor
+
 
   // Global exception filter (updated to use GlobalExceptionFilter)
   app.useGlobalFilters(new GlobalExceptionFilter());

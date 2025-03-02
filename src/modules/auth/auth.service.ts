@@ -60,36 +60,78 @@ export class AuthService {
         secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
       });
 
-      // Check if the user exists using findByEmail
-      const user = await this.usersService.findByEmail(payload.email); // Use findByEmail
+      // Check if the user exists
+      const user = await this.usersService.findByEmail(payload.email);
       if (!user) {
         throw new ApiError(HttpStatus.NOT_FOUND, 'User does not exist');
       }
 
-      // Generate a new access token with role
-      const accessToken = this.jwtService.sign(
-        { email: user.email, sub: user.id, role: user.role }, // Include role in payload
-        {
-          secret: this.configService.get<string>('JWT_SECRET'),
-          expiresIn: this.configService.get<string>('JWT_EXPIRES_IN'),
-        },
-      );
-
-      // Generate a new refresh token with role (optional)
-      const refreshToken = this.jwtService.sign(
-        { email: user.email, sub: user.id, role: user.role }, // Include role in payload
-        {
-          secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
-          expiresIn: this.configService.get<string>('JWT_REFRESH_EXPIRES_IN'),
-        },
-      );
+      // Generate a new access token
+      const accessToken = this.generateAccessToken(user);
 
       return {
         access_token: accessToken,
-        refresh_token: refreshToken,
+        refresh_token: token, // Return the same refresh token (unchanged)
       };
     } catch (error) {
-      throw new ApiError(HttpStatus.FORBIDDEN, 'Invalid or expired refresh token');
+      if (error.name === 'TokenExpiredError') {
+        throw new ApiError(HttpStatus.UNAUTHORIZED, 'Refresh token expired');
+      } else if (error.name === 'JsonWebTokenError') {
+        throw new ApiError(HttpStatus.UNAUTHORIZED, 'Invalid refresh token');
+      } else {
+        throw new ApiError(HttpStatus.INTERNAL_SERVER_ERROR, 'Failed to refresh token');
+      }
     }
   }
+
+  // Helper method to generate an access token
+  private generateAccessToken(user: any): string {
+    return this.jwtService.sign(
+      { email: user.email, sub: user.id, role: user.role },
+      {
+        secret: this.configService.get<string>('JWT_SECRET'),
+        expiresIn: this.configService.get<string>('JWT_EXPIRES_IN'),
+      },
+    );
+  }
+
+  // async refreshToken(token: string) {
+  //   try {
+  //     // Verify the refresh token
+  //     const payload = this.jwtService.verify(token, {
+  //       secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+  //     });
+
+  //     // Check if the user exists using findByEmail
+  //     const user = await this.usersService.findByEmail(payload.email); // Use findByEmail
+  //     if (!user) {
+  //       throw new ApiError(HttpStatus.NOT_FOUND, 'User does not exist');
+  //     }
+
+  //     // Generate a new access token with role
+  //     const accessToken = this.jwtService.sign(
+  //       { email: user.email, sub: user.id, role: user.role }, // Include role in payload
+  //       {
+  //         secret: this.configService.get<string>('JWT_SECRET'),
+  //         expiresIn: this.configService.get<string>('JWT_EXPIRES_IN'),
+  //       },
+  //     );
+
+  //     // Generate a new refresh token with role (optional)
+  //     const refreshToken = this.jwtService.sign(
+  //       { email: user.email, sub: user.id, role: user.role }, // Include role in payload
+  //       {
+  //         secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+  //         expiresIn: this.configService.get<string>('JWT_REFRESH_EXPIRES_IN'),
+  //       },
+  //     );
+
+  //     return {
+  //       access_token: accessToken,
+  //       refresh_token: refreshToken,
+  //     };
+  //   } catch (error) {
+  //     throw new ApiError(HttpStatus.FORBIDDEN, 'Invalid or expired refresh token');
+  //   }
+  // }
 }

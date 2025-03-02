@@ -62,7 +62,7 @@ export class AuthController {
 
     // If no refresh token is found in either cookies or headers, throw an error
     if (!refreshToken) {
-      throw new ApiError(HttpStatus.UNAUTHORIZED, 'Refresh token not found');
+      throw new ApiError(HttpStatus.BAD_REQUEST, 'Refresh token not found');
     }
 
     // Call the service to refresh the token
