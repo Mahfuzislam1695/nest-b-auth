@@ -2,7 +2,7 @@ import { Controller, Post, Body, UseGuards, Request, Res, HttpStatus, Req } from
 import { Response } from 'express';
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './guards/local-auth.guard'; // Import LocalAuthGuard
-import { ApiTags, ApiOperation, ApiBody, ApiResponse, ApiCookieAuth } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBody, ApiResponse, ApiCookieAuth, ApiHeader } from '@nestjs/swagger';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { sendResponse } from 'src/common/responses/send-response';
 import { ConfigService } from '@nestjs/config';
@@ -30,7 +30,6 @@ export class AuthController {
 
     res.cookie('refreshToken', result.refresh_token, cookieOptions);
 
-
     sendResponse(res, {
       statusCode: HttpStatus.OK,
       success: true,
@@ -41,29 +40,33 @@ export class AuthController {
 
   @Post('refresh-token')
   @ApiOperation({ summary: 'Refresh access token' })
-  @ApiCookieAuth('refreshToken') // Indicate that this endpoint requires a refresh token cookie
-  @ApiResponse({ status: 200, description: 'Access token refreshed successfully.' })
-  @ApiResponse({ status: 401, description: 'Invalid or expired refresh token.' })
+  @ApiCookieAuth('refreshToken') // Indicate that this endpoint can accept a refresh token cookie
+  @ApiHeader({
+    name: 'Authorization',
+    description: 'Bearer <refreshToken>',
+    required: false,
+  })
+  @ApiResponse({ status: HttpStatus.OK, description: 'Access token refreshed successfully.' })
+  @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Invalid or expired refresh token.' })
   async refreshToken(@Req() req: CustomRequest, @Res() res: Response) {
-    const refreshToken = req.cookies['refreshToken'];
-    // const refreshToken = (req as any).cookies['refreshToken'];
+    // Try to get the refresh token from the cookie
+    let refreshToken = req.cookies['refreshToken'];
 
-    // console.log("refreshToken", refreshToken);
+    // If not found in cookies, try to get it from the Authorization header
+    if (!refreshToken) {
+      const authHeader = req.headers['authorization'];
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        refreshToken = authHeader.split(' ')[1]; // Extract the token from "Bearer <token>"
+      }
+    }
 
-
+    // If no refresh token is found in either cookies or headers, throw an error
     if (!refreshToken) {
       throw new ApiError(HttpStatus.UNAUTHORIZED, 'Refresh token not found');
     }
 
+    // Call the service to refresh the token
     const result = await this.authService.refreshToken(refreshToken);
-
-    // Set refresh token in cookie
-    // const cookieOptions = {
-    //   secure: this.configService.get<string>('NODE_ENV') === 'production', // Use secure cookies in production
-    //   httpOnly: true, // Prevent client-side JavaScript from accessing the cookie
-    // };
-
-    // res.cookie('refreshToken', result.refresh_token, cookieOptions);
 
     sendResponse(res, {
       statusCode: HttpStatus.OK,
@@ -72,4 +75,25 @@ export class AuthController {
       data: { access_token: result.access_token },
     });
   }
+  // @Post('refresh-token')
+  // @ApiOperation({ summary: 'Refresh access token' })
+  // @ApiCookieAuth('refreshToken') // Indicate that this endpoint requires a refresh token cookie
+  // @ApiResponse({ status: HttpStatus.OK, description: 'Access token refreshed successfully.' })
+  // @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Invalid or expired refresh token.' })
+  // async refreshToken(@Req() req: CustomRequest, @Res() res: Response) {
+  //   const refreshToken = req.cookies['refreshToken'];
+
+  //   if (!refreshToken) {
+  //     throw new ApiError(HttpStatus.UNAUTHORIZED, 'Refresh token not found');
+  //   }
+
+  //   const result = await this.authService.refreshToken(refreshToken);
+
+  //   sendResponse(res, {
+  //     statusCode: HttpStatus.OK,
+  //     success: true,
+  //     message: 'Access token refreshed successfully!',
+  //     data: { access_token: result.access_token },
+  //   });
+  // }
 }

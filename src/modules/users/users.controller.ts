@@ -3,7 +3,7 @@ import { Response } from 'express';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { sendResponse } from 'src/common/responses/send-response';
 import { Role, Status } from '@prisma/client';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -14,7 +14,6 @@ import { Roles } from 'src/common/decorators/roles.decorator';
 @Controller('users')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth('Authorization')
-// @ApiBearerAuth('JWT-auth')
 export class UsersController {
   constructor(private readonly usersService: UsersService) { }
 
@@ -34,9 +33,12 @@ export class UsersController {
     });
   }
 
+
   @Get()
   @ApiOperation({ summary: 'Get all users' })
   @ApiResponse({ status: HttpStatus.OK, description: 'List of users.' })
+  @ApiQuery({ name: 'role', required: false, enum: Role, description: 'Filter users by role' })
+  @ApiQuery({ name: 'status', required: false, enum: Status, description: 'Filter users by status' })
   async findAll(
     @Res() res: Response,
     @Query('role') role?: Role,
@@ -92,13 +94,12 @@ export class UsersController {
   @ApiResponse({ status: HttpStatus.OK, description: 'User deleted.' })
   @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'User not found.' })
   async remove(@Param('id') id: string, @Res() res: Response) {
-    // await this.usersService.remove(+id);
     const user = await this.usersService.remove(+id);
     sendResponse(res, {
       statusCode: HttpStatus.OK,
       success: true,
       message: 'User deleted successfully!',
-      data: user
+      data: user,
     });
   }
 }

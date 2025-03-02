@@ -33,15 +33,7 @@ export class AuthService {
   async login(loginDto: CreateAuthDto) {
     const { email, password } = loginDto;
 
-    // Validate user credentials
     const user = await this.validateUser(email, password);
-
-    // const payload = { email: user.email, sub: user.id, role: user.role };
-
-    // const accessToken = this.jwtService.sign(payload, {
-    //   secret: this.configService.get<string>('JWT_SECRET'),
-    //   expiresIn: this.configService.get<string>('JWT_EXPIRES_IN'),
-    // });
 
     const payload = { email: user.email, sub: user.id, role: user.role };
     const accessToken = this.jwtService.sign(payload, {
