@@ -1,15 +1,28 @@
 {
   "version": 2,
+  "env": {
+    "DATABASE_URL": "@DATABASE_URL",
+    "NODE_ENV": "@NODE_ENV",
+    "PORT": "@PORT",
+    "JWT_SECRET": "@mahfuz_islam",
+    "JWT_EXPIRES_IN": "@JWT_EXPIRES_IN",
+    "JWT_REFRESH_SECRET": "@JWT_REFRESH_SECRET",
+    "JWT_REFRESH_EXPIRES_IN": "@JWT_REFRESH_EXPIRES_IN",
+    "CORS_ORIGIN": "@CORS_ORIGIN",
+    "CORS_CREDENTIALS": "@CORS_CREDENTIALS",
+    "COOKIE_SECURE": "@COOKIE_SECURE",
+    "COOKIE_HTTP_ONLY": "@COOKIE_HTTP_ONLY"
+  },
   "builds": [
     {
-      "src": "dist/main.js",
+      "src": "src/main.ts",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "dist/main.js",
+      "dest": "src/main.ts",
       "methods": [
         "GET",
         "POST",
