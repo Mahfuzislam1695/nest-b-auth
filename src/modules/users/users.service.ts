@@ -17,6 +17,9 @@ export class UsersService {
       where: { email: createUserDto.email },
     });
 
+    console.log("existingUser", existingUser);
+
+
     if (existingUser) {
       throw new ApiError(HttpStatus.CONFLICT, 'Email already exists.');
     }

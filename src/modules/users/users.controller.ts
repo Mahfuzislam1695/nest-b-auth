@@ -12,7 +12,7 @@ import { Roles } from 'src/common/decorators/roles.decorator';
 
 @ApiTags('Users')
 @Controller('users')
-@UseGuards(JwtAuthGuard, RolesGuard)
+// @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth('Authorization')
 export class UsersController {
   constructor(private readonly usersService: UsersService) { }
@@ -23,7 +23,12 @@ export class UsersController {
   @ApiResponse({ status: HttpStatus.CREATED, description: 'User created successfully.' })
   @ApiResponse({ status: HttpStatus.CONFLICT, description: 'Email already exists.' })
   async create(@Body() createUserDto: CreateUserDto, @Res() res: Response) {
+    console.log("createUserDto", createUserDto);
+
     const result = await this.usersService.create(createUserDto);
+
+    console.log("result", result);
+
 
     sendResponse(res, {
       statusCode: HttpStatus.CREATED,
