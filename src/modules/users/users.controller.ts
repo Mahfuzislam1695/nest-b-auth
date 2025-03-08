@@ -18,6 +18,7 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) { }
 
   @Post()
+  @Roles('admin')
   @ApiOperation({ summary: 'Create a new user' })
   @ApiBody({ type: CreateUserDto, description: 'User data for creation' })
   @ApiResponse({ status: HttpStatus.CREATED, description: 'User created successfully.' })
